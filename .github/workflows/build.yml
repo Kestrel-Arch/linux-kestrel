@@ -31,7 +31,7 @@ jobs:
             archlinux:base-devel \
             bash -c "
               echo '==> Syncing packages and installing compiler toolchain...' &&
-              pacman -Syu --noconfirm --needed git clang llvm lld rust rust-src rust-bindgen cpio bc python dwarves kmod sudo &&
+              pacman -Syu --noconfirm --needed git clang llvm lld rust rust-src rust-bindgen cpio bc python pahole kmod sudo &&
               useradd -m builder &&
               echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers &&
               chown -R builder:builder /build &&
