@@ -1,1 +1,13 @@
+# mkinitcpio preset file for linux-kestrel
 
+ALL_config="/etc/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux-kestrel"
+
+PRESETS=('default' 'fallback')
+
+# Default image configuration
+default_image="/boot/initramfs-linux-kestrel.img"
+
+# Fallback image configuration (includes all modules just in case)
+fallback_image="/boot/initramfs-linux-kestrel-fallback.img"
+fallback_options="-S autodetect"
