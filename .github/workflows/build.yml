@@ -1,0 +1,48 @@
+name: Build Linux Kestrel Kernel
+
+on:
+  workflow_dispatch: # Allows you to manually click "Run workflow" in GitHub
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - "README.md"
+      - ".gitignore"
+
+jobs:
+  build-kernel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free Disk Space on Runner
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Compile Kernel in Native Arch Linux Container
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/build \
+            -w /build \
+            archlinux:base-devel \
+            bash -c "
+              echo '==> Syncing packages and installing compiler toolchain...' &&
+              pacman -Syu --noconfirm --needed git clang llvm lld rust rust-src rust-bindgen cpio bc python dwarves kmod sudo &&
+              useradd -m builder &&
+              echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers &&
+              chown -R builder:builder /build &&
+              echo '==> Compiling linux-kestrel with makepkg...' &&
+              su builder -c 'MAKEFLAGS=-j\$(nproc) makepkg -sc --noconfirm'
+            "
+
+      - name: Upload Kernel Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-kestrel-binaries
+          path: ${{ github.workspace }}/*.pkg.tar.zst
+          if-no-files-found: error
+          retention-days: 14
